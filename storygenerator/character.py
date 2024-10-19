@@ -1,10 +1,9 @@
-import dotenv
 import os
 
+import dotenv
 from julep import Client
 
 from storygenerator import linkedin_scraper
-
 
 dotenv.load_dotenv(override=True)
 client = Client(api_key=os.environ['JULEP_API_KEY'])
@@ -17,16 +16,19 @@ class StoryCharacter:
         profile:
           LinkedIn profile or basic description
         """
-        char_dict = linkedin_scraper.url_to_profile(li_url)
-        return StoryCharacter(
-            name=char_dict['name'],
-            description=f"""
+        char_dict, pfp_description = linkedin_scraper.url_to_profile(li_url)
+        return (
+            StoryCharacter(
+                name=char_dict['name'],
+                description=f"""
                 Your name is {char_dict['name']}
                 Some of your personality traits are {",".join(char_dict['traits'])}
                 This is your background story:
                   {char_dict['background']}
                 Your potential as a hero is {char_dict['potential']}
-            """
+            """,
+            ),
+            pfp_description,
         )
 
     def __init__(self, description: str, name: str = "John"):
@@ -41,10 +43,12 @@ class StoryCharacter:
         self._julep_agent = None
         self._session = None
         self._history = []  # Add events to its history to be prepended to its messages
-        self.add_history(f"""
+        self.add_history(
+            f"""
                     Your name is {self.name}.
                     This is a description of you: {self.description}
-                """)
+                """
+        )
 
     @property
     def julep_agent(self):
@@ -70,10 +74,7 @@ class StoryCharacter:
         return self._session
 
     def add_history(self, message, role="user"):
-        self._history.append({
-            "role": role,
-            "content": message
-        })
+        self._history.append({"role": role, "content": message})
 
     def chat(self, message: str, situation: str | None = None):
         """
