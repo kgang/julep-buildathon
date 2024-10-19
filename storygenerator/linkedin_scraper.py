@@ -1,13 +1,16 @@
-from dotenv import load_dotenv
 import os
-import requests
-from julep import Julep
-import yaml
 import time
+
+import requests
+import yaml
+from dotenv import load_dotenv
+from julep import Julep
+from openai import OpenAI
 
 load_dotenv(override=True)
 julep_api_key = os.getenv('JULEP_OPENAI_API_KEY')
 client = Julep(api_key=julep_api_key)
+
 
 def experiences_to_str(experiences: list[dict]) -> str:
     """
@@ -85,6 +88,9 @@ def person_to_str(person: dict):
     education: list | None = person.get('education')
     education_str: str = education_to_str(education) if education else ""
 
+    pfp_url: str = person.get('profile_pic_url')
+    pfp_description: str = pfp_to_description(pfp_url)
+
     return (
         f"Name: {first_name or ''} {last_name or ''}\n"
         f"Gender: {gender or 'N/A'}\n"
@@ -96,7 +102,37 @@ def person_to_str(person: dict):
         f"Occupation: {occupation or 'N/A'}\n"
         f"Experiences:\n{experiences_str or 'No experience listed'}\n"
         f"Education:\n{education_str or 'No education listed'}"
+    ), pfp_description
+
+
+def pfp_to_description(pfp_url: str) -> str:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    prompt = """Provide a detailed description of the person's physical appearance in three sentences. Focus on permanent features such as facial structure, skin tone, hair type, and body shape. Do not include details about their pose, actions, clothing, accessories, or any temporary features like expressions or makeup.
+"""
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": prompt,
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": pfp_url,
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=300,
     )
+
+    return response.choices[0].message.content
 
 
 def url_to_profile(li_url: str):
@@ -107,7 +143,7 @@ def url_to_profile(li_url: str):
 
     params = {'linkedin_profile_url': li_url}
     person: dict = requests.get(url, headers=headers, params=params).json()
-    person_str = person_to_str(person)
+    person_str, pfp_description = person_to_str(person)
 
     profile_creator = client.agents.create(
         name='Hero Story Writer',
@@ -149,7 +185,6 @@ main:
             model: gpt-4o-mini
             temperature: 0
 """
-
     )
     task = client.tasks.create(agent_id=profile_creator.id, **hero_writer_yaml)
 
