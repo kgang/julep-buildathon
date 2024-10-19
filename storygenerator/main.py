@@ -128,7 +128,7 @@ class Scene:
             Your job is to generate a very short section for the next part of the story. 
             The next part of the story should have these attributes:
                 {heros_journey[step]}
-            Limit your output to one sentence. Be descriptive of the scene.
+            Limit your output to one concise sentence. Be descriptive of the scene.
         """
         )
         return resp
