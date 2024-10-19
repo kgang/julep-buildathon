@@ -1,0 +1,32 @@
+name: Hero Profile Writer
+description: Creates a hero's profile based on a real person's LinkedIn data, focusing on the start of their journey.
+
+main:
+    - prompt:
+          - role: system
+            content: You are {{agent.name}}. {{agent.about}}
+          - role: user
+            content: >
+                Based on the following annotated LinkedIn profile, create a hero's profile. The profile should focus on the start of the person's hero journey, highlighting their potential, core traits, and hinting at upcoming challenges. Don't change the profile's name.
+
+                IMPORTANT: Create a *profile*, not a *story*. Profiles revolve around character traits. 
+
+                '{{_.person_linkedin_str}}'
+
+                Write the hero profile in a structured, readable format. Be inspirational and grand yet relatable.
+                Return the profile in this format:
+
+                ```yaml
+                name: "<original_first_name> <original_last_name>"
+                background: "<string>"
+                traits: 
+                    - "<trait>"
+                    - "<trait>"
+                potential: "<description of the person's potential>"
+                ```
+
+                Return your response in the format with valid YAML syntax.
+            unwrap: true
+            settings:
+            model: gpt-4o-mini
+            temperature: 0
