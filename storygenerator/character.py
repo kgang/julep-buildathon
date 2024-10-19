@@ -32,13 +32,11 @@ class StoryCharacter:
     def __init__(self, description: str, name: str = "John"):
         from storygenerator import main
 
-        storyteller_agent = main.agent
-        storyteller_agent_props = client.agents.get(agent_id=storyteller_agent.id)
         self.name = name
         self.description = description
         self._user = client.users.create(
-            name=storyteller_agent_props.name,
-            about=storyteller_agent_props.about,
+            name="Storyteller",
+            about="You are a creative storyteller that crafts engaging stories.",
         )
         self._julep_agent = None
         self._session = None
@@ -71,9 +69,9 @@ class StoryCharacter:
             )
         return self._session
 
-    def add_history(self, message):
+    def add_history(self, message, role="user"):
         self._history.append({
-            "role": "user",
+            "role": role,
             "content": message
         })
 

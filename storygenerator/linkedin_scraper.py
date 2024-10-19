@@ -8,7 +8,7 @@ from julep import Julep
 from openai import OpenAI
 
 load_dotenv(override=True)
-julep_api_key = os.getenv('JULEP_OPENAI_API_KEY')
+julep_api_key = os.getenv('JULEP_API_KEY')
 client = Julep(api_key=julep_api_key)
 
 
