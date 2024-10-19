@@ -1,4 +1,11 @@
+import dotenv
+import os
 
+from julep import Julep
+
+
+dotenv.load_dotenv(override=True)
+client = Julep(api_key=os.environ['JULEP_API_KEY'])
 
 _npcs: dict[str, "StoryCharacter"] = {}
 """Map a npc's name to a character"""
