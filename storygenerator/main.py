@@ -99,14 +99,19 @@ heros_journey = [
 class Scene:
     def __init__(
             self,
-            hero_desc: str | None = character.kent_desc,
-            li_url: str="https://www.linkedin.com/in/kent-g-00ba0743/"
+            li_url: str | None = None
     ):
-        if hero_desc is None:
-            self.hero, pfp_desc = character.StoryCharacter.gen_character(li_url=li_url)
+        if li_url is not None:
+            self.hero, pfp_desc = character.StoryCharacter.gen_character(
+                li_url=li_url
+            )
         else:
+            # Default
             self.hero, pfp_desc = (
-                character.StoryCharacter(name="Kent", description=hero_desc),
+                character.StoryCharacter(
+                    name="Kent",
+                    description=character.kent_desc
+                ),
                 "The person has short, dark hair styled upwards, with a clean and well-defined haircut.\n")
         self.hero_pfp_description = pfp_desc
 
@@ -134,8 +139,8 @@ class Scene:
         return resp
 
 
-def generate_story(hero_desc = "", li_url: str="https://www.linkedin.com/in/kent-g-00ba0743/"):
-    story_scene = Scene(hero_desc=hero_desc, li_url=li_url)
+def generate_story(li_url: str | None=None):
+    story_scene = Scene(li_url=li_url)
 
     full_story = []
     for step in range(12):
