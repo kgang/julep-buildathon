@@ -8,9 +8,11 @@ import yaml
 from julep import Julep
 from pprint import pprint
 
+from storygenerator.character import client
+
 
 dotenv.load_dotenv(override=True)
-client = Julep(api_key=os.environ['JULEP_API_KEY'])
+# client = Julep(api_key=os.environ['JULEP_API_KEY'])
 
 heros_journey = ["""
     1. Ordinary World
