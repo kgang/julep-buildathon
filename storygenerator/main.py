@@ -198,7 +198,7 @@ def generate_story(li_url: str | None=None):
                 (x_position, y_position + i * 30),
                 cap, font=font, fill="black", stroke_fill='white', stroke_width=4)
 
-        image.save(f'new2/{step}_captioned_image.png')
+        image.save(f'{step}_captioned_image.png')
 
         full_story.append(story_chunk)
 

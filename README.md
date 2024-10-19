@@ -10,6 +10,8 @@ poetry install
 ```
 
 ## To run
+After running the program, the images will be added to the root of the repo
+
 ```python
 from storygenerator import main
 
@@ -23,3 +25,4 @@ From command line:
 ```bash
 python storygenerator/main.py
 ```
+
