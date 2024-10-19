@@ -108,7 +108,7 @@ def person_to_str(person: dict):
 def pfp_to_description(pfp_url: str) -> str:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-    prompt = """Provide a detailed description of the person's physical appearance in three sentences. Focus on permanent features such as facial structure, skin tone, hair type, and body shape. Do not include details about their pose, actions, clothing, accessories, or any temporary features like expressions or makeup.
+    prompt = """Provide a very short description of the person's physical appearance in one sentence. Focus on permanent features such as facial structure, skin tone, hair type, and body shape. Do not include details about their pose, actions, clothing, accessories, or any temporary features like expressions or makeup.
 """
     response = client.chat.completions.create(
         model="gpt-4o-mini",

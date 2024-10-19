@@ -1,5 +1,6 @@
 import base64
 import os
+import textwrap
 import time
 from pprint import pprint
 
@@ -94,17 +95,20 @@ heros_journey = [
 ]
 
 
-# agent = client.agents.create(
-#     name="Storytelling Agent",
-#     model="claude-3.5-sonnet",
-#     about=f"""You are a creative storyteller that crafts engaging stories on a myriad of topics.""",
-# )
 
-
-# print('agent', agent.name, agent.about)
 class Scene:
-    def __init__(self, li_url: str = "https://www.linkedin.com/in/kent-g-00ba0743/"):
-        self.hero, self.hero_pfp_description = character.StoryCharacter.gen_character(li_url=li_url)
+    def __init__(
+            self,
+            hero_desc: str | None = character.kent_desc,
+            li_url: str="https://www.linkedin.com/in/kent-g-00ba0743/"
+    ):
+        if hero_desc is None:
+            self.hero, pfp_desc = character.StoryCharacter.gen_character(li_url=li_url)
+        else:
+            self.hero, pfp_desc = (
+                character.StoryCharacter(name="Kent", description=hero_desc),
+                "The person has short, dark hair styled upwards, with a clean and well-defined haircut.\n")
+        self.hero_pfp_description = pfp_desc
 
         self.storyteller = character.StoryCharacter(
             name="Storyteller",
@@ -124,24 +128,28 @@ class Scene:
             Your job is to generate a very short section for the next part of the story. 
             The next part of the story should have these attributes:
                 {heros_journey[step]}
-            Limit your output to one sentence.
+            Limit your output to one sentence. Be descriptive of the scene.
         """
         )
         return resp
 
 
-def generate_story():
-    story_so_far = []
+def generate_story(hero_desc = "", li_url: str="https://www.linkedin.com/in/kent-g-00ba0743/"):
+    story_scene = Scene(hero_desc=hero_desc, li_url=li_url)
+
+    full_story = []
     for step in range(12):
         print("STORY PART", step)
-        sceneGenerator = Scene(step)
-        task, story = sceneGenerator.generate_scene(story_so_far=story_so_far)
 
+        story_chunk = story_scene.generate_scene(step)
+        pprint(story_chunk)
         # Graphics generation
-        hero_pfp_description = sceneGenerator.hero_pfp_description
+        hero_pfp_description = story_scene.hero_pfp_description
 
         style = 'grayscale, detailed drawing, japanese manga\n'
-        prompt = style + hero_pfp_description + story
+        prompt = f"""{style}
+        {story_chunk}
+        """
 
         output = replicate.run(
             "black-forest-labs/flux-dev",
@@ -165,29 +173,34 @@ def generate_story():
         image = Image.open(f'{step}_image.png')
         draw = ImageDraw.Draw(image)
 
-        caption = 'this is a caption'
-        font_size = 50
+        caption = story_chunk
+        font_size = 16
         try:
             font = ImageFont.truetype("arial.ttf", font_size)
         except IOError:
             font = ImageFont.load_default(size=font_size)
 
-        bbox = draw.textbbox((0, 0), caption, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-        image_width, image_height = image.size
-        x_position = (image_width - text_width) / 2
-        y_position = image_height - text_height - 30  # 10 pixels from the bottom
-        draw.text((x_position, y_position), caption, font=font, fill="black", stroke_fill='white', stroke_width=3)
 
-        image.save(f'{step}_captioned_image.png')
+        split_caption = textwrap.fill(caption).split('\n')
+        for i, cap in enumerate(split_caption):
+            bbox = draw.textbbox((0, 0), cap, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            image_width, image_height = image.size
+            x_position = (image_width - text_width) / 2
+            y_position = image_height - text_height - len(cap) * 2
+            draw.text(
+                (x_position, y_position + i * 30),
+                cap, font=font, fill="black", stroke_fill='white', stroke_width=4)
 
-        story_so_far.append(story)
+        image.save(f'new2/{step}_captioned_image.png')
 
-    return "\n".join(story_so_far)
+        full_story.append(story_chunk)
+
+    return full_story
 
 
 if __name__ == "__main__":
     full_story = generate_story()
 
-    print('\n\n FULL STORY \n\n', full_story)
+    pprint(full_story)
