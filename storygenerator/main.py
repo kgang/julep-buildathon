@@ -1,10 +1,13 @@
+import base64
 import os
 import time
 from pprint import pprint
 
 import dotenv
+import replicate
 import yaml
 from julep import Julep
+from PIL import Image, ImageDraw, ImageFont
 
 from storygenerator import character
 from storygenerator.character import client
@@ -134,7 +137,51 @@ def generate_story():
         sceneGenerator = Scene(step)
         task, story = sceneGenerator.generate_scene(story_so_far=story_so_far)
 
+        # Graphics generation
         hero_pfp_description = sceneGenerator.hero_pfp_description
+
+        style = 'grayscale, detailed drawing, japanese manga\n'
+        prompt = style + hero_pfp_description + story
+
+        output = replicate.run(
+            "black-forest-labs/flux-dev",
+            input={
+                "prompt": prompt,
+                "go_fast": False,
+                "guidance": 6,
+                "megapixels": "1",
+                "num_outputs": 1,
+                "aspect_ratio": "1:1",
+                "output_quality": 80,
+                "num_inference_steps": 28,
+            },
+        )
+
+        base64_string = str(output[0]).replace("data:application/octet-stream;base64,", "")
+        image_data = base64.b64decode(base64_string)
+        with open(f"{step}_image.png", "wb") as file:
+            file.write(image_data)
+
+        image = Image.open('image.png')
+        draw = ImageDraw.Draw(image)
+
+        caption = 'this is a caption'
+        font_size = 50
+        try:
+            font = ImageFont.truetype("arial.ttf", font_size)
+        except IOError:
+            font = ImageFont.load_default(size=font_size)
+
+        bbox = draw.textbbox((0, 0), caption, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        image_width, image_height = image.size
+        x_position = (image_width - text_width) / 2
+        y_position = image_height - text_height - 30  # 10 pixels from the bottom
+        draw.text((x_position, y_position), caption, font=font, fill="black", stroke_fill='white', stroke_width=3)
+
+        image.save(f'{step}_captioned_image.png')
+
         story_so_far.append(story)
 
     return "\n".join(story_so_far)
