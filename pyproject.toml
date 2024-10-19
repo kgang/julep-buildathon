@@ -10,6 +10,7 @@ readme = "README.md"
 python = "^3.9"
 julep = "^1.19.0"
 dotenv = "^0.0.5"
+pyyaml = "^6.0.2"
 
 
 [build-system]
