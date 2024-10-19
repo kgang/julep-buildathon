@@ -1,5 +1,4 @@
 import dotenv
-import json
 import os
 
 from julep import Client
@@ -18,8 +17,7 @@ class StoryCharacter:
         profile:
           LinkedIn profile or basic description
         """
-        # char_dict = linkedin_scraper.url_to_profile(li_url)
-        char_dict = {'name': 'Kent G.', 'background': 'Hailing from the vibrant borough of Queens, New York, Kent G. stands at the precipice of innovation, where technology meets creativity. As the Founder and CEO of Abstract Operators, Kent is poised to revolutionize the way we interact with artificial intelligence through open-source orchestration and advanced Kubernetes solutions. With a foundation built on rigorous academic training and a diverse professional journey, Kent embodies the spirit of a true pioneer.', 'traits': ['Visionary', 'Resilient', 'Innovative', 'Mentor'], 'potential': 'With a rich background in engineering physics and hands-on experience in financial engineering, Kent possesses a unique ability to navigate complex systems and extract actionable insights. Their journey has been marked by a relentless pursuit of knowledge, mentorship of others, and a passion for leveraging technology to solve real-world problems. As they embark on this next chapter, challenges loom on the horizon, from navigating the intricacies of the evolving AI landscape to building a robust venture ecosystem. Yet, with unwavering determination and a clear vision, Kent is destined to inspire and lead the charge into a future shaped by ingenuity and collaboration.'}
+        char_dict = linkedin_scraper.url_to_profile(li_url)
         return StoryCharacter(
             name=char_dict['name'],
             description=f"""
