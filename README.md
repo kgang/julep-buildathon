@@ -10,11 +10,16 @@ poetry install
 ```
 
 ## To run
-```
+```python
 from storygenerator import main
 
 main.generate_story()
 
 # optionally provide a linked in url to generate a hero
 # main.generate_story(li_url=<some_linkedin_url>)
+```
+
+From command line:
+```bash
+python storygenerator/main.py
 ```
