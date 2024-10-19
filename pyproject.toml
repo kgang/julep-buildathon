@@ -11,9 +11,7 @@ python = "^3.9"
 ipykernel = "==6.29.5"
 python-dotenv = "==1.0.1"
 requests = "^2.32.3"
-proxycurl-py = {extras = ["asyncio"], version = "^0.1.0.post2"}
 julep = "^1.19.0"
-dotenv = "^0.0.5"
 pyyaml = "^6.0.2"
 
 

@@ -1,10 +1,9 @@
-import dotenv
 import os
 import time
+
+import dotenv
 import yaml
-
 from julep import Julep
-
 
 dotenv.load_dotenv(override=True)
 client = Julep(api_key=os.environ['JULEP_API_KEY'])
@@ -115,17 +114,11 @@ main:
       plot: "load_yaml(_.split('```yaml')[1].split('```')[0].strip())"
 """
 
-task = client.tasks.create(
-    agent_id=agent.id,
-    **yaml.safe_load(task_yaml)
-)
+task = client.tasks.create(agent_id=agent.id, **yaml.safe_load(task_yaml))
 
 ### Step 3: Execute the Task
 
-execution = client.executions.create(
-    task_id=task.id,
-    input={"idea": "A cat who learns to fly"}
-)
+execution = client.executions.create(task_id=task.id, input={"idea": "A cat who learns to fly"})
 
 # 🎉 Watch as the story and comic panels are generated
 while (result := client.executions.get(execution.id)).status not in ['succeeded', 'failed']:
