@@ -198,4 +198,4 @@ main:
         raise Exception(result.error)
     choices = res.get('choices')
     message = choices[0]['message']['content']
-    return yaml.safe_load('\n'.join(message.split('\n')[1:-1]))
+    return yaml.safe_load('\n'.join(message.split('\n')[1:-1])), pfp_description
