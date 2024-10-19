@@ -6,6 +6,7 @@ import time
 import yaml
 
 from julep import Julep
+from pprint import pprint
 
 
 dotenv.load_dotenv(override=True)
@@ -80,10 +81,7 @@ heros_journey = ["""
 agent = client.agents.create(
     name="Storytelling Agent",
     model="claude-3.5-sonnet",
-    about=f"""You are a creative storyteller that crafts engaging stories on a myriad of topics.
-
-        {"\n".join(heros_journey)}
-    """,
+    about=f"""You are a creative storyteller that crafts engaging stories on a myriad of topics.""",
 )
 
 
@@ -109,120 +107,57 @@ class Scene:
                         """,
                     'role': 'user'
                 }
-            ]
+            ],
         }]
 
         task = client.tasks.create(
             agent_id=agent.id,
             main = main_story,
-            name = "storyteller",
-            description = "Creates a story."
+            name = f"storyteller step {self.step}",
+            description = "Creates a scene.",
         )
 
         return task
     
 
+def generate_story():
+
+    story_so_far = ''
+    for step in range(12):
+        print("STORY PART", step)
+        sceneGenerator = Scene(step)  
+        task = sceneGenerator.generate_scene(story_so_far=story_so_far)
+        execution = client.executions.create(
+            task_id=task.id,
+            input={}
+        )
+
+        print('creating execution id ', execution.id)
+        print('task id ', task.id)
+
+        # 🎉 Watch as the story and comic panels are generated
+        while (result := client.executions.get(execution.id)).status not in ['succeeded', 'failed']:
+            print(result.status, result.output)
+            time.sleep(1)
+
+        # 📦 Once the execution is finished, retrieve the results
+        if result.status == "succeeded":
+            # print("FULL OUTPUT", result.output)
+
+            story = result.output.get('choices')[0]['message']['content']
+            print(f"STORY STEP: {step}\n", story)
+
+            story_so_far += f"""
+                {story}
+            """
+            
+        else:
+            raise Exception(result.error)
+
+    return story_so_far
+
 
 if __name__ == "__main__":
-    sceneGenerator = Scene(step = 0)  
-    task = sceneGenerator.generate_scene(story_so_far='')
-    execution = client.executions.create(
-        task_id=task.id,
-    )
+    full_story = generate_story()
 
-    # 🎉 Watch as the story and comic panels are generated
-    while (result := client.executions.get(execution.id)).status not in ['succeeded', 'failed']:
-        print(result.status, result.output)
-        time.sleep(1)
-
-    # 📦 Once the execution is finished, retrieve the results
-    if result.status == "succeeded":
-        print(result.output)
-    else:
-        raise Exception(result.error)
-
-
-
-
-# {'description': 'Create a story based on an idea.',
-#  'main': [{'prompt': [{'content': 'You are {{agent.name}}. {{agent.about}}',
-#                        'role': 'system'},
-#                       {'content': "Based on the idea '{{_.idea}}', generate a "
-#                                   'list of 5 plot ideas. Go crazy and be as '
-#                                   'creative as possible. Return your output as '
-#                                   'a list of long strings inside ```yaml tags '
-#                                   'at the end of your response.\n',
-#                        'role': 'user'}],
-#            'unwrap': True},
-#           {'evaluate': {'plot_ideas': "load_yaml(_.split('```yaml')[1].split('```')[0].strip())"}},
-#           {'prompt': [{'content': 'You are {{agent.name}}. {{agent.about}}',
-#                        'role': 'system'},
-#                       {'content': 'Here are some plot ideas for a story: {% '
-#                                   'for idea in _.plot_ideas %} - {{idea}} {% '
-#                                   'endfor %}\n'
-#                                   'To develop the story, we need to research '
-#                                   'for the plot ideas. What should we '
-#                                   'research? Write down wikipedia search '
-#                                   'queries for the plot ideas you think are '
-#                                   'interesting. Return your output as a yaml '
-#                                   'list inside ```yaml tags at the end of your '
-#                                   'response.\n',
-#                        'role': 'user'}],
-#            'settings': {'model': 'gpt-4o-mini', 'temperature': 0.7},
-#            'unwrap': True},
-#           {'evaluate': {'research_queries': "load_yaml(_.split('```yaml')[1].split('```')[0].strip())"}},
-#           {'foreach': {'do': {'arguments': {'query': '_'},
-#                               'tool': 'research_wikipedia'},
-#                        'in': '_.research_queries'}},
-#           {'evaluate': {'wikipedia_results': 'NEWLINE.join([f"- '
-#                                              '{doc.metadata.title}: '
-#                                              '{doc.metadata.summary}" for item '
-#                                              'in _ for doc in '
-#                                              'item.documents])'}},
-#           {'prompt': [{'content': 'You are {{agent.name}}. {{agent.about}}',
-#                        'role': 'system'},
-#                       {'content': "Before we write the story, let's think and "
-#                                   'deliberate. Here are some plot ideas:\n'
-#                                   '{% for idea in outputs[1].plot_ideas %}\n'
-#                                   '- {{idea}}\n'
-#                                   '{% endfor %}\n'
-#                                   '\n'
-#                                   'Here are the results from researching the '
-#                                   'plot ideas on Wikipedia:\n'
-#                                   '{{_.wikipedia_results}}\n'
-#                                   '\n'
-#                                   'Think about the plot ideas critically. '
-#                                   'Combine the plot ideas with the results '
-#                                   'from Wikipedia to create a detailed plot '
-#                                   'for a story.\n'
-#                                   'Write down all your notes and thoughts.\n'
-#                                   'Then finally write the plot as a yaml '
-#                                   'object inside ```yaml tags at the end of '
-#                                   'your response. The yaml object should have '
-#                                   'the following structure:\n'
-#                                   '\n'
-#                                   '```yaml\n'
-#                                   'title: "<string>"\n'
-#                                   'characters:\n'
-#                                   '- name: "<string>"\n'
-#                                   '  about: "<string>"\n'
-#                                   'synopsis: "<string>"\n'
-#                                   'scenes:\n'
-#                                   '- title: "<string>"\n'
-#                                   '  description: "<string>"\n'
-#                                   '  characters:\n'
-#                                   '  - name: "<string>"\n'
-#                                   '    role: "<string>"\n'
-#                                   '  plotlines:\n'
-#                                   '  - "<string>"```\n'
-#                                   '\n'
-#                                   'Make sure the yaml is valid and the '
-#                                   'characters and scenes are not empty. Also '
-#                                   'take care of semicolons and other gotchas '
-#                                   'of writing yaml.',
-#                        'role': 'user'}],
-#            'unwrap': True},
-#           {'evaluate': {'plot': "load_yaml(_.split('```yaml')[1].split('```')[0].strip())"}}],
-#  'name': 'Storyteller',
-#  'tools': [{'integration': {'method': 'search', 'provider': 'wikipedia'},
-#             'name': 'research_wikipedia'}]}
+    print('\n\n FULL STORY \n\n', full_story)
