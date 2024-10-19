@@ -162,7 +162,7 @@ def generate_story():
         with open(f"{step}_image.png", "wb") as file:
             file.write(image_data)
 
-        image = Image.open('image.png')
+        image = Image.open(f'{step}_image.png')
         draw = ImageDraw.Draw(image)
 
         caption = 'this is a caption'
