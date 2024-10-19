@@ -13,6 +13,9 @@ python-dotenv = "==1.0.1"
 requests = "^2.32.3"
 julep = "^1.19.0"
 pyyaml = "^6.0.2"
+replicate = "^1.0.2"
+openai = "^1.52.0"
+pillow = "^11.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
