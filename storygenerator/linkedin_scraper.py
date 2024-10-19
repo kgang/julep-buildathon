@@ -6,7 +6,7 @@ import yaml
 import time
 
 load_dotenv(override=True)
-julep_api_key = os.getenv('JULEP_OPENAI_API_KEY')
+julep_api_key = os.getenv('JULEP_API_KEY')
 client = Julep(api_key=julep_api_key)
 
 def experiences_to_str(experiences: list[dict]) -> str:

@@ -9,7 +9,7 @@ from julep import Julep
 from pprint import pprint
 
 from storygenerator.character import client
-
+from storygenerator import character
 
 dotenv.load_dotenv(override=True)
 
@@ -80,83 +80,51 @@ heros_journey = ["""
     """]
 
 
-agent = client.agents.create(
-    name="Storytelling Agent",
-    model="claude-3.5-sonnet",
-    about=f"""You are a creative storyteller that crafts engaging stories on a myriad of topics.""",
-)
+# agent = client.agents.create(
+#     name="Storytelling Agent",
+#     model="claude-3.5-sonnet",
+#     about=f"""You are a creative storyteller that crafts engaging stories on a myriad of topics.""",
+# )
 
 
 # print('agent', agent.name, agent.about)
 class Scene:
-    def __init__(self, step: int):
-        self.step = step
+    def __init__(self, li_url: str="https://www.linkedin.com/in/kent-g-00ba0743/"):
+        self.hero = character.StoryCharacter.gen_character(li_url=li_url)
 
-    def generate_scene(self, story_so_far = None): 
-        main_story = [{
-            'prompt': [
-                {
-                    'content': "You are a {{agent.name}}. {{agent.about}}",
-                    'role': "system"
-                },
-                {
-                    'content': f"""Your job is to generate a scene for the entire story. 
-                        Here's the story so far
-                        {story_so_far } 
-
-                        Follow the story and generate a scene with the following structure.
-                        {heros_journey[self.step]}
-                        """,
-                    'role': 'user'
-                }
-            ],
-        }]
-
-        task = client.tasks.create(
-            agent_id=agent.id,
-            main = main_story,
-            name = f"storyteller step {self.step}",
-            description = "Creates a scene.",
+        self.storyteller = character.StoryCharacter(
+            name="Storyteller",
+            description=f"""
+                You are a creative storyteller that crafts engaging stories.
+                You will create a story following with the following hero:
+                Hero name: {self.hero.name}
+                Hero description: {self.hero.description}
+            """
         )
 
-        return task
+    def generate_scene(self, step: int, story_so_far = ''):
+        if story_so_far:
+            self.storyteller.add_history(story_so_far)
+        resp = self.storyteller.chat(f"""
+            Your job is to generate a very short section for the next part of the story. 
+            The next part of the story should have these attributes:
+                {heros_journey[step]}
+            Limit your output to one sentence.
+        """)
+        return resp
+
     
 
 def generate_story():
-
-    story_so_far = ''
+    story_so_far = []
     for step in range(12):
         print("STORY PART", step)
         sceneGenerator = Scene(step)  
-        task = sceneGenerator.generate_scene(story_so_far=story_so_far)
-        execution = client.executions.create(
-            task_id=task.id,
-            input={}
-        )
+        task, story = sceneGenerator.generate_scene(story_so_far=story_so_far)
+        story_so_far.append(story)
+        
 
-        print('creating execution id ', execution.id)
-        print('task id ', task.id)
-
-        # 🎉 Watch as the story and comic panels are generated
-        while (result := client.executions.get(execution.id)).status not in ['succeeded', 'failed']:
-            print(result.status, result.output)
-            time.sleep(1)
-
-        # 📦 Once the execution is finished, retrieve the results
-        if result.status == "succeeded":
-            # print("FULL OUTPUT", result.output)
-
-            story = result.output.get('choices')[0]['message']['content']
-            print(f"STORY STEP: {step}\n", story)
-
-            story_so_far += f"""
-                {story}
-            """
-            
-        else:
-            raise Exception(result.error)
-
-    return story_so_far
+    return "\n".join(story_so_far)
 
 
 if __name__ == "__main__":
